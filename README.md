@@ -10,7 +10,7 @@ Format files in your Obsidian vault using [Prettier](https://prettier.io)
 
 ### Via BRAT (recommended)
 
-> ![IMPORTANT]
+> [!IMPORTANT]
 >
 > Using [BRAT](https://community.obsidian.md/plugins/obsidian42-brat) is recommended because it allows Obsidian to check for and apply updates for this plugin automatically.
 
