@@ -1,6 +1,6 @@
 {
   "name": "obsidian-format-with-prettier-el",
-  "version": "0.18.1",
+  "version": "0.18.2",
   "description": "Format vault files using Prettier.",
   "main": "main.js",
   "scripts": {

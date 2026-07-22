@@ -44,13 +44,11 @@ There are two methods to configure this plugin:
 
 ## Formatting the entire vault at once
 
-Use the Prettier [CLI](https://prettier.io/docs/en/cli):
+You can format every markdown file in your vault simultaneously using the Command Palette:
 
-```console
-$ cd YOUR_VAULT_FOLDER
-$ echo '**/.obsidian' > .prettierignore
-$ npx prettier . --write --config prettierrc.json
-```
+1. Press `Ctrl+P` (or `Cmd+P` on Mac) to open the Command Palette.
+2. Search for and execute **Obsidian Format with Prettier: Format entire vault**.
+3. A confirmation dialog will appear. It is highly recommended to back up your vault before proceeding, as this action will modify files directly on your hard drive and cannot be undone via Obsidian's Undo history.
 
 ## License
 

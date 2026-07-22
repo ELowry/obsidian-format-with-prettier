@@ -13,6 +13,9 @@ import * as markdownPlugin from 'prettier/plugins/markdown';
 import * as postcssPlugin from 'prettier/plugins/postcss';
 import * as typescriptPlugin from 'prettier/plugins/typescript';
 import * as yamlPlugin from 'prettier/plugins/yaml';
+import prettierPluginMarkdown from 'prettier/plugins/markdown';
+import prettierPluginBabel from 'prettier/plugins/babel';
+import prettierPluginEstree from 'prettier/plugins/estree';
 
 /**
  * Arguments passed to the {@link format} function.
@@ -58,3 +61,28 @@ export const format = ({ text, filepath, cursorOffset, prettierOptions }: Format
 		],
 		...prettierOptions,
 	});
+
+/**
+ * Formats a given markdown string using Prettier with the provided JSON configuration.
+ *
+ * @param text The raw text string to format.
+ * @param configString The JSON string representing the Prettier configuration.
+ * @returns A promise that resolves to the formatted string.
+ */
+export async function formatMarkdownString(text: string, configString?: string): Promise<string> {
+	let customOptions: Options = {};
+
+	if (configString) {
+		try {
+			customOptions = JSON.parse(configString) as Options;
+		} catch (error) {
+			console.error('Invalid Prettier JSON configuration:', error);
+		}
+	}
+
+	return await prettier.format(text, {
+		parser: 'markdown',
+		plugins: [prettierPluginMarkdown, prettierPluginBabel, prettierPluginEstree],
+		...customOptions,
+	});
+}

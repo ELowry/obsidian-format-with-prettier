@@ -15,7 +15,7 @@ import {
 import { VimWriteCommandPatcher } from './vim-write-command-patcher';
 import { PrettierConfigLoader } from './prettier-config-loader';
 import { SaveFileCommandCallback } from './save-file-command-callback';
-import { format } from './format';
+import { format, formatMarkdownString } from './format';
 
 /**
  * Persisted settings for the Format with Prettier plugin.
@@ -134,6 +134,14 @@ export default class PrettierPlugin extends Plugin {
 				return true;
 			},
 		});
+
+		this.addCommand({
+			id: 'format-entire-vault',
+			name: 'Format entire vault',
+			callback: () => {
+				void this.formatEntireVault();
+			},
+		});
 	}
 
 	/**
@@ -176,6 +184,58 @@ export default class PrettierPlugin extends Plugin {
 			new Notice('Failed to format file, see the developer console for more details');
 			console.error(e);
 		}
+	}
+
+	/**
+	 * Formats all markdown files in the vault using the active Prettier configuration.
+	 * Prompts the user for confirmation before modifying files on disk.
+	 */
+	private async formatEntireVault(): Promise<void> {
+		const files = this.app.vault.getMarkdownFiles();
+
+		if (files.length === 0) {
+			new Notice('No Markdown files found to format.');
+			return;
+		}
+
+		// eslint-disable-next-line no-alert
+		const confirm = window.confirm(
+			`Are you sure you want to format all ${files.length} Markdown files in your vault?\n\nThis action cannot be undone. It is highly recommended to back up your vault first.`,
+		);
+
+		if (!confirm) {
+			return;
+		}
+
+		new Notice(`Starting to format ${files.length} files. This may take a moment...`);
+
+		let formattedCount = 0;
+		let errorCount = 0;
+
+		for (const file of files) {
+			try {
+				const content = await this.app.vault.read(file);
+
+				const formattedContent = await formatMarkdownString(
+					content,
+					this.settings.customConfigText,
+				);
+
+				if (content !== formattedContent) {
+					await this.app.vault.modify(file, formattedContent);
+					formattedCount++;
+				}
+			} catch (err) {
+				console.error(`Failed to format ${file.name}:`, err);
+				errorCount++;
+			}
+		}
+
+		const errorMessage =
+			errorCount > 0 ? ` (Failed on ${errorCount} files. Check console.)` : '';
+		new Notice(
+			`Formatting complete! Updated ${formattedCount} out of ${files.length} files.${errorMessage}`,
+		);
 	}
 }
 
