@@ -8,9 +8,26 @@ Format files in your Obsidian vault using [Prettier](https://prettier.io)
 
 ## Installation
 
-Unzip the `format-with-prettier.zip` from the [latest release](https://github.com/ELowry/obsidian-format-with-prettier/releases/latest) into the `.obsidian/plugins` folder of your vault.
+### Via BRAT (recommended)
 
-Note that you might have to reopen your vault for the plugin to show up under "Installed plugins"
+> ![IMPORTANT]
+>
+> Using [BRAT](https://community.obsidian.md/plugins/obsidian42-brat) is recommended because it allows Obsidian to check for and apply updates for this plugin automatically.
+
+1. Install and enable the **[BRAT](https://community.obsidian.md/plugins/obsidian42-brat)** plugin from Obsidian's official Community Plugins registry.
+2. Go to **Settings** → **BRAT** → **Add Beta plugin**.
+3. Enter the repository URL: `ELowry/obsidian-format-with-prettier`
+4. Click **Add Plugin**. BRAT will download the latest version and handle future updates automatically.
+
+### Manual Installation
+
+1. Go to the [latest release](https://github.com/ELowry/obsidian-format-with-prettier/releases/latest).
+2. Under the **Assets** section, download the following three files: `main.js`, `manifest.json`, and `styles.css`.
+3. In your Obsidian vault, navigate to the `.obsidian/plugins/` directory.
+4. Create a new folder named exactly `obsidian-format-with-prettier`.
+5. Place the three downloaded files into this new folder.
+6. Reload Obsidian, or go to **Settings** → **Community plugins** and click the refresh icon next to **Installed plugins**.
+7. Toggle on **Obsidian Format with Prettier**.
 
 ## Usage
 
