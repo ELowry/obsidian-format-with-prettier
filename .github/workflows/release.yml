@@ -1,42 +1,105 @@
-name: Release Obsidian plugin
-
-permissions:
-  contents: write
+name: Release Obsidian Plugin
 
 on:
-  push:
-    tags:
-      - "*"
+    push:
+        tags:
+            - '*.*.*'
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+    build-and-release:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+            id-token: write
+            attestations: write
+            artifact-metadata: write
 
-    steps:
-      - uses: actions/checkout@v6
+        steps:
+            - name: Checkout Code
+              uses: actions/checkout@v7
+              with:
+                  fetch-depth: 0
 
-      - name: Use Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: 20
+            - name: Setup Node.js
+              uses: actions/setup-node@v7
 
-      - name: Build plugin
-        run: |
-          npm install
-          npm run build
+            - name: Verify Version Integrity (manifest.json & versions.json)
+              run: |
+                  # Remove the refs/tags/ part to get the raw tag
+                  TAG_VERSION=${GITHUB_REF#refs/tags/}
 
-      - name: Create ZIP of release
-        uses: montudor/action-zip@v1
-        with:
-          args: zip -qq -r format-with-prettier.zip main.js manifest.json
+                  # Read version from manifest.json
+                  MANIFEST_VERSION=$(node -p "require('./manifest.json').version")
 
-      - name: Create release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          tag="${GITHUB_REF#refs/tags/}"
+                  echo "Git Tag Version: $TAG_VERSION"
+                  echo "Manifest Version: $MANIFEST_VERSION"
 
-          gh release create "$tag" \
-            -F CHANGELOG.md \
-            --draft \
-            format-with-prettier.zip main.js manifest.json
+                  if [ "$TAG_VERSION" != "$MANIFEST_VERSION" ]; then
+                    echo "::error::Version mismatch! Git tag ($TAG_VERSION) does not match manifest.json ($MANIFEST_VERSION)."
+                    exit 1
+                  fi
+
+                  # Verify the version exists in versions.json
+                  VERSION_EXISTS=$(node -p "!!require('./versions.json')['$TAG_VERSION']")
+                  if [ "$VERSION_EXISTS" != "true" ]; then
+                    echo "::error::versions.json does not contain an entry for $TAG_VERSION!"
+                    exit 1
+                  fi
+
+                  echo "Versions match and are registered. Proceeding with release."
+
+            - name: Install Dependencies
+              run: npm install
+
+            - name: Lint Code
+              run: npm run lint
+
+            - name: Build Plugin
+              run: npm run build
+
+            - name: Prepare Release Assets
+              run: |
+                  mkdir -p release-assets
+                  cp main.js release-assets/main.js
+                  cp manifest.json release-assets/manifest.json
+                  cp styles.css release-assets/styles.css
+
+            - name: Generate Artifact Attestations
+              uses: actions/attest@v4
+              with:
+                  subject-path: 'release-assets/*'
+
+            - name: Generate Release Notes
+              run: |
+                  # Find the second most recent tag (the previous release)
+                  PREV_TAG=$(git tag --sort=-creatordate | sed -n '2p')
+
+                  # If a previous tag exists, log commits between then and now
+                  if [ -n "$PREV_TAG" ]; then
+                    git log ${PREV_TAG}..${{ github.ref_name }} --pretty=format:"- %s" > generated_notes.txt
+                  else
+                    # Fallback for the very first release
+                    git log -5 --pretty=format:"- %s" > generated_notes.txt
+                  fi
+
+                  # Optional: Append the comparison link at the bottom
+                  echo "" >> generated_notes.txt
+                  echo "**Full Changelog:** https://github.com/${{ github.repository }}/compare/${PREV_TAG}...${{ github.ref_name }}" >> generated_notes.txt
+
+            - name: Create GitHub Release
+              id: create_release
+              uses: softprops/action-gh-release@v3
+              with:
+                  files: release-assets/*
+                  draft: true
+                  body_path: generated_notes.txt
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Notify Discord
+              uses: ELowry/discord-draft-notifier@v1
+              with:
+                  webhook_url: ${{ secrets.DISCORD_WEBHOOK }}
+                  version: ${{ github.ref_name }}
+                  release_url: ${{ steps.create_release.outputs.url }}
+                  notes_file_path: generated_notes.txt

@@ -1,0 +1,22 @@
+/* styles.css */
+
+.prettier-plugin-block {
+	display: block;
+}
+
+.prettier-plugin-warning-text {
+	color: var(--text-warning);
+}
+
+.prettier-plugin-config-input {
+	width: 100%;
+	font-family: var(--font-monospace);
+}
+
+.prettier-plugin-settings-element {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+	gap: 10px;
+	margin-top: 15px;
+}

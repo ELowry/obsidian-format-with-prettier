@@ -1,49 +1,49 @@
-import { describe, it, expect } from "vitest";
-import { stripIndent } from "common-tags";
+import { describe, it, expect } from 'vitest';
+import { stripIndent } from 'common-tags';
 
-import { FormatArgs, format } from "../src/format";
+import { FormatArgs, format } from '../src/format';
 
-describe("format", () => {
-  describe("embedded languages", () => {
-    const filepath = "note.md";
-    const cursorOffset = 1;
-    const prettierOptions = {};
+describe('format', () => {
+	describe('embedded languages', () => {
+		const filepath = 'note.md';
+		const cursorOffset = 1;
+		const prettierOptions = {};
 
-    const getArgs = (text: string): FormatArgs => ({
-      filepath,
-      cursorOffset,
-      prettierOptions,
-      text,
-    });
+		const getArgs = (text: string): FormatArgs => ({
+			filepath,
+			cursorOffset,
+			prettierOptions,
+			text,
+		});
 
-    const testFormat = (text: string) => format(getArgs(text));
+		const testFormat = (text: string) => format(getArgs(text));
 
-    it("should format js", async () => {
-      await expect(
-        testFormat(
-          stripIndent`
+		it('should format js', async () => {
+			await expect(
+				testFormat(
+					stripIndent`
         # JS note
 
-        ${"```javascript"}
+        ${'```javascript'}
           const foo = 'bar'
 
 
 
           const array = [1,    2,
             3];
-        ${"```"}
+        ${'```'}
         `,
-        ),
-      ).resolves.toMatchSnapshot();
-    });
+				),
+			).resolves.toMatchSnapshot();
+		});
 
-    it("should format jsx", async () => {
-      await expect(
-        testFormat(
-          stripIndent`
+		it('should format jsx', async () => {
+			await expect(
+				testFormat(
+					stripIndent`
         # JSX note
 
-        ${"```jsx"}
+        ${'```jsx'}
           function MyButton() {
             return (
           <button>I'm a button
@@ -52,19 +52,19 @@ describe("format", () => {
               </button>
             );
           }
-        ${"```"}
+        ${'```'}
         `,
-        ),
-      ).resolves.toMatchSnapshot();
-    });
+				),
+			).resolves.toMatchSnapshot();
+		});
 
-    it("should format ts", async () => {
-      await expect(
-        testFormat(
-          stripIndent`
+		it('should format ts', async () => {
+			await expect(
+				testFormat(
+					stripIndent`
         # TS note
 
-        ${"```typescript"}
+        ${'```typescript'}
           const foo:   string = 'bar'
 
 
@@ -72,19 +72,19 @@ describe("format", () => {
           const array: Array<
           number > = [1,    2,
             3];
-        ${"```"}
+        ${'```'}
         `,
-        ),
-      ).resolves.toMatchSnapshot();
-    });
+				),
+			).resolves.toMatchSnapshot();
+		});
 
-    it("should format tsx", async () => {
-      await expect(
-        testFormat(
-          stripIndent`
+		it('should format tsx', async () => {
+			await expect(
+				testFormat(
+					stripIndent`
         # TSX note
 
-        ${"```tsx"}
+        ${'```tsx'}
           function MyButton({title}:
                             { title: string }) {
             return (
@@ -93,19 +93,19 @@ describe("format", () => {
           }</button>
             );
           }
-        ${"```"}
+        ${'```'}
         `,
-        ),
-      ).resolves.toMatchSnapshot();
-    });
+				),
+			).resolves.toMatchSnapshot();
+		});
 
-    it("should format angular", async () => {
-      await expect(
-        testFormat(
-          stripIndent`
+		it('should format angular', async () => {
+			await expect(
+				testFormat(
+					stripIndent`
         # Angular note
 
-        ${"```typescript"}
+        ${'```typescript'}
           import {Component} from '@angular/core';
           
           @Component({
@@ -131,39 +131,39 @@ describe("format", () => {
           export class AppComponent {
             title = 'default';
           }
-        ${"```"}
+        ${'```'}
         `,
-        ),
-      ).resolves.toMatchSnapshot();
-    });
+				),
+			).resolves.toMatchSnapshot();
+		});
 
-    it("should format json", async () => {
-      await expect(
-        testFormat(
-          stripIndent`
+		it('should format json', async () => {
+			await expect(
+				testFormat(
+					stripIndent`
         # JSON note
 
-        ${"```json"}
+        ${'```json'}
         {"foo": "bar", 
           "bar": true,
 
               "baz": 1
         }
 
-        ${"```"}
+        ${'```'}
 
           `,
-        ),
-      ).resolves.toMatchSnapshot();
-    });
+				),
+			).resolves.toMatchSnapshot();
+		});
 
-    it("should format jsonc", async () => {
-      await expect(
-        testFormat(
-          stripIndent`
+		it('should format jsonc', async () => {
+			await expect(
+				testFormat(
+					stripIndent`
         # JSON note
 
-        ${"```jsonc"}
+        ${'```jsonc'}
         {"foo": "bar", 
           // a comment
           "bar": true,
@@ -171,55 +171,55 @@ describe("format", () => {
               "baz": 1
         }
 
-        ${"```"}
+        ${'```'}
 
           `,
-        ),
-      ).resolves.toMatchSnapshot();
-    });
+				),
+			).resolves.toMatchSnapshot();
+		});
 
-    it("should format flow", async () => {
-      await expect(
-        testFormat(
-          stripIndent`
+		it('should format flow', async () => {
+			await expect(
+				testFormat(
+					stripIndent`
         # Flow note
 
-        ${"```js"}
+        ${'```js'}
           // @flow
           opaque type ID = string;
           
           function identity(x:      ID):ID {return x;
           }
           export type {ID};
-        ${"```"}
+        ${'```'}
           `,
-        ),
-      ).resolves.toMatchSnapshot();
-    });
+				),
+			).resolves.toMatchSnapshot();
+		});
 
-    it("should format handlebars", async () => {
-      await expect(
-        testFormat(
-          stripIndent`
+		it('should format handlebars', async () => {
+			await expect(
+				testFormat(
+					stripIndent`
         # Handlebars note
 
-        ${"```handlebars"}
+        ${'```handlebars'}
           <ul class="people_list">{{#each people}}
                             <li>{{this}}</li>{{/each}}
               </ul>
-        ${"```"}
+        ${'```'}
           `,
-        ),
-      ).resolves.toMatchSnapshot();
-    });
+				),
+			).resolves.toMatchSnapshot();
+		});
 
-    it("should format graphql", async () => {
-      await expect(
-        testFormat(
-          stripIndent`
+		it('should format graphql', async () => {
+			await expect(
+				testFormat(
+					stripIndent`
         # GraphQL note
 
-        ${"```graphql"}
+        ${'```graphql'}
           {
             project (
 
@@ -229,19 +229,19 @@ describe("format", () => {
             tagline
             }
           }
-        ${"```"}
+        ${'```'}
           `,
-        ),
-      ).resolves.toMatchSnapshot();
-    });
+				),
+			).resolves.toMatchSnapshot();
+		});
 
-    it("should format html", async () => {
-      await expect(
-        testFormat(
-          stripIndent`
+		it('should format html', async () => {
+			await expect(
+				testFormat(
+					stripIndent`
         # HTML note
 
-        ${"```html"}
+        ${'```html'}
           <h1>
           The Crushing Bore</h1><p>By Chris Mills</p>
           
@@ -251,19 +251,19 @@ describe("format", () => {
 
           <p>It was a dark night. Somewhere, an owl hooted. The rain lashed down on the…
           </p>
-        ${"```"}
+        ${'```'}
           `,
-        ),
-      ).resolves.toMatchSnapshot();
-    });
+				),
+			).resolves.toMatchSnapshot();
+		});
 
-    it("should format css", async () => {
-      await expect(
-        testFormat(
-          stripIndent`
+		it('should format css', async () => {
+			await expect(
+				testFormat(
+					stripIndent`
         # CSS note
 
-        ${"```css"}
+        ${'```css'}
           h1 {color: red;   font-size: 5em;
           }
           
@@ -272,19 +272,19 @@ describe("format", () => {
           
           
             color: black;}
-        ${"```"}
+        ${'```'}
           `,
-        ),
-      ).resolves.toMatchSnapshot();
-    });
+				),
+			).resolves.toMatchSnapshot();
+		});
 
-    it("should format scss", async () => {
-      await expect(
-        testFormat(
-          stripIndent`
+		it('should format scss', async () => {
+			await expect(
+				testFormat(
+					stripIndent`
         # SCSS note
 
-        ${"```scss"}
+        ${'```scss'}
           @mixin theme($theme:DarkGray  ){
             background: $theme;box-shadow: 0 0 1px rgba($theme, .25);
             color: #fff;
@@ -292,19 +292,19 @@ describe("format", () => {
           
           .info {@include theme;
           }
-        ${"```"}
+        ${'```'}
           `,
-        ),
-      ).resolves.toMatchSnapshot();
-    });
+				),
+			).resolves.toMatchSnapshot();
+		});
 
-    it("should format less", async () => {
-      await expect(
-        testFormat(
-          stripIndent`
+		it('should format less', async () => {
+			await expect(
+				testFormat(
+					stripIndent`
         # LESS note
 
-        ${"```less"}
+        ${'```less'}
           #library() { .colors() {primary: green;
               secondary: blue;
             }
@@ -313,19 +313,19 @@ describe("format", () => {
           .button {
             color: #library.colors[primary ];border-color: #library.colors[secondary];
           }
-        ${"```"}
+        ${'```'}
           `,
-        ),
-      ).resolves.toMatchSnapshot();
-    });
+				),
+			).resolves.toMatchSnapshot();
+		});
 
-    it("should format yaml", async () => {
-      await expect(
-        testFormat(
-          stripIndent`
+		it('should format yaml', async () => {
+			await expect(
+				testFormat(
+					stripIndent`
         # YAML note
 
-        ${"```yaml"}
+        ${'```yaml'}
           name: Martin D'vloper #key-value
           
           
@@ -337,10 +337,10 @@ describe("format", () => {
             
             - playing_music #second list item
             - cooking #third list item
-        ${"```"}
+        ${'```'}
           `,
-        ),
-      ).resolves.toMatchSnapshot();
-    });
-  });
+				),
+			).resolves.toMatchSnapshot();
+		});
+	});
 });
