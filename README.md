@@ -1,3 +1,5 @@
+[![License: MIT](https://img.shields.io/badge/License-MIT-3d383b.svg)](LICENSE) [![Latest GitHub release](https://img.shields.io/github/v/release/ELowry/obsidian-format-with-prettier?logo=GitHub&color=a4785e)](https://github.com/ELowry/obsidian-format-with-prettier/releases/latest)
+
 # Obsidian Format with Prettier
 
 > [!NOTE]
