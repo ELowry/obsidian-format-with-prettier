@@ -68,6 +68,9 @@ function createMockConfigLoader(
 		getOptions: vi.fn().mockResolvedValue(mockOptions),
 		getVaultFileOptions: vi.fn().mockResolvedValue(mockVaultOptions),
 		loadPrettierOptions: vi.fn().mockResolvedValue(undefined),
+		isPathIgnored: vi.fn().mockReturnValue(false),
+		loadIgnorePatterns: vi.fn().mockResolvedValue(undefined),
+		getVaultIgnoreFileContent: vi.fn().mockResolvedValue(null),
 	} as unknown as PrettierConfigLoader;
 }
 
@@ -129,6 +132,20 @@ describe('Plugin Commands', () => {
 		it('should abort gracefully if the config loader returns null', async () => {
 			// Spy on the method by name to avoid unbound-method errors
 			vi.spyOn(mockLoader, 'getOptions').mockResolvedValueOnce(null);
+
+			const unformattedText = 'const x="hello"';
+			const mockEditor = createMockEditor(unformattedText);
+			const transactionSpy = vi.spyOn(mockEditor, 'transaction');
+
+			await formatFile(mockPlugin, mockEditor);
+
+			// Editor should not be touched
+			expect(transactionSpy).not.toHaveBeenCalled();
+		});
+
+		it('should abort gracefully if the file path is ignored', async () => {
+			// Simulate the file being ignored
+			vi.spyOn(mockLoader, 'isPathIgnored').mockReturnValueOnce(true);
 
 			const unformattedText = 'const x="hello"';
 			const mockEditor = createMockEditor(unformattedText);
