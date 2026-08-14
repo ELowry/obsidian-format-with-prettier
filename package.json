@@ -10,7 +10,9 @@
     "lint": "eslint .",
     "format": "prettier --write \"src/**/*.{ts,js,css}\" styles.css --config .prettierrc",
     "check-format": "prettier --check \"src/**/*.{ts,js,css}\" styles.css --config .prettierrc",
-    "test": "vitest run"
+    "test": "vitest run",
+    "update": "npm update && npm ci && npm i",
+    "upgrade": "npx npm-check-updates -u && npm i"
   },
   "keywords": [
     "Obsidian plugin",
@@ -22,25 +24,25 @@
     "builtin-modules": "^5.3.0",
     "common-tags": "^1.8.2",
     "obsidian": "1.13.0",
-    "prettier": "3.8.3",
-    "tslib": "2.8.1"
+    "prettier": "^3.9.6",
+    "tslib": "^2.8.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
     "@types/common-tags": "^1.8.4",
-    "@types/node": "^20.19.43",
-    "esbuild": "^0.28.1",
+    "@types/node": "^26.2.0",
+    "esbuild": "^0.28.2",
     "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-obsidianmd": "^0.3.0",
-    "globals": "^17.7.0",
+    "eslint-plugin-obsidianmd": "^0.4.1",
+    "globals": "^17.11.0",
     "jiti": "^2.7.0",
     "prettier-plugin-css-order": "^2.2.0",
     "tslib": "^2.8.1",
-    "typescript": "^5.9.3",
-    "typescript-eslint": "^8.65.0",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.67.0",
     "vitest": "^4.1.10"
   },
   "allowScripts": {
-    "esbuild@0.28.1": true
+    "esbuild@0.28.2": true
   }
 }
