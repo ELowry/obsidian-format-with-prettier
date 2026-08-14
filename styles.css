@@ -30,8 +30,8 @@
 }
 
 .prettier-plugin-config-input.is-invalid {
-	border-color: var(--color-red) !important;
 	box-shadow: 0 0 0 1px var(--color-red);
+	border-color: var(--color-red) !important;
 }
 
 .prettier-plugin-warning-text {
