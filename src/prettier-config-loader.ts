@@ -1,6 +1,6 @@
 import { App, Notice, parseYaml } from 'obsidian';
 import type { Options } from 'prettier';
-import type { PrettierPluginSettings } from './main';
+import type { PrettierPluginSettings } from './settings';
 
 /**
  * Prettier configuration files supported by the loader, ordered by priority.
@@ -15,11 +15,9 @@ const SUPPORTED_CONFIG_FILES = [
 ];
 
 /**
- * Loads and caches Prettier options from either a vault configuration file or
- * the plugin's custom JSON setting, depending on {@link PrettierPluginSettings.useCustomConfig}.
+ * Loads and caches Prettier options from either a vault configuration file or the plugin's custom JSON setting, depending on {@link PrettierPluginSettings.useCustomConfig}.
  *
- * Uses Just-In-Time (JIT) evaluation with modification time caching to
- * efficiently detect and load config file changes without relying on file watchers.
+ * Uses Just-In-Time (JIT) evaluation with modification time caching to efficiently detect and load config file changes without relying on file watchers.
  */
 export class PrettierConfigLoader {
 	/** Cached options parsed from the vault config file. */
@@ -32,8 +30,7 @@ export class PrettierConfigLoader {
 	private cachedMtime: number = 0;
 
 	/**
-	 * The vault-relative path of the config file that was last successfully
-	 * loaded, or `null` if no file was found.
+	 * The vault-relative path of the config file that was last successfully loaded, or `null` if no file was found.
 	 */
 	public configFilePath: string | null = null;
 
@@ -44,15 +41,12 @@ export class PrettierConfigLoader {
 	) {}
 
 	/**
-	 * Iterates over {@link SUPPORTED_CONFIG_FILES} in priority order and evaluates
-	 * the first one found in the vault root.
+	 * Iterates over {@link SUPPORTED_CONFIG_FILES} in priority order and evaluates the first one found in the vault root.
 	 *
 	 * Bypasses the Obsidian `TFile` cache to read dotfiles using `app.vault.adapter`.
-	 * Uses the file's modification time (`mtime`) to return cached options instantly
-	 * if the file has not changed since the last read.
+	 * Uses the file's modification time (`mtime`) to return cached options instantly if the file has not changed since the last read.
 	 *
-	 * YAML files (`.yml` / `.yaml`) are parsed with Obsidian's `parseYaml`;
-	 * all other files are treated as JSON.
+	 * YAML files (`.yml` / `.yaml`) are parsed with Obsidian's `parseYaml`; all other files are treated as JSON.
 	 *
 	 * @returns A promise resolving to the parsed {@link Options} object.
 	 */
@@ -108,13 +102,10 @@ export class PrettierConfigLoader {
 	/**
 	 * Asynchronously returns the parsed Prettier options.
 	 *
-	 * - When {@link PrettierPluginSettings.useCustomConfig} is `true`, options
-	 * are parsed from the plugin's `customConfigText` setting.
-	 * - Otherwise, returns the options loaded from the vault config file, utilizing
-	 * the JIT modification time cache for performance.
+	 * - When {@link PrettierPluginSettings.useCustomConfig} is `true`, options are parsed from the plugin's `customConfigText` setting.
+	 * - Otherwise, returns the options loaded from the vault config file, utilizing the JIT modification time cache for performance.
 	 *
-	 * @returns A promise resolving to the {@link Options}, or `null` if
-	 * `useCustomConfig` is enabled but `customConfigText` contains invalid JSON.
+	 * @returns A promise resolving to the {@link Options}, or `null` if `useCustomConfig` is enabled but `customConfigText` contains invalid JSON.
 	 */
 	async getOptions(): Promise<Options | null> {
 		const settings = this.getSettings();
@@ -129,5 +120,19 @@ export class PrettierConfigLoader {
 		}
 
 		return await this.readPrettierConfigFile();
+	}
+
+	/**
+	 * Reads the vault configuration file directly, ignoring the useCustomConfig setting.
+	 * Returns null if no configuration file is found in the vault root.
+	 */
+	public async getVaultFileOptions(): Promise<Options | null> {
+		const options = await this.readPrettierConfigFile();
+
+		if (!this.configFilePath) {
+			return null;
+		}
+
+		return options;
 	}
 }

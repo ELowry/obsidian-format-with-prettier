@@ -1,12 +1,9 @@
 import { App } from 'obsidian';
 
 /**
- * Patches the CodeMirror Vim adapter's `save` command so that executing
- * `:w` in Vim mode triggers Obsidian's built-in `editor:save-file` command
- * instead of (or in addition to) the default CodeMirror save action.
+ * Patches the CodeMirror Vim adapter's `save` command so that executing `:w` in Vim mode triggers Obsidian's built-in `editor:save-file` command instead of (or in addition to) the default CodeMirror save action.
  *
- * This works around the fact that the Vim `write` command does not natively
- * fire Obsidian's save pipeline.
+ * This works around the fact that the Vim `write` command does not natively fire Obsidian's save pipeline.
  *
  * @see https://forum.obsidian.md/t/vim-write-command-is-not-triggering-editor-save-file/40084
  */
@@ -17,17 +14,14 @@ export class VimWriteCommandPatcher {
 	constructor(private readonly app: App) {}
 
 	/**
-	 * Returns the `commands` object from `window.CodeMirrorAdapter`, or
-	 * `undefined` if CodeMirror is not available (e.g. Vim mode is disabled).
+	 * Returns the `commands` object from `window.CodeMirrorAdapter`, or `undefined` if CodeMirror is not available (e.g. Vim mode is disabled).
 	 */
 	private getCodeMirrorCommands() {
 		return window.CodeMirrorAdapter?.commands;
 	}
 
 	/**
-	 * Replaces `CodeMirrorAdapter.commands.save` with a wrapper that calls the
-	 * original handler and then executes `editor:save-file` via Obsidian's
-	 * command system.
+	 * Replaces `CodeMirrorAdapter.commands.save` with a wrapper that calls the original handler and then executes `editor:save-file` via Obsidian's command system.
 	 *
 	 * Does nothing if `CodeMirrorAdapter.commands` is not available.
 	 */
@@ -39,7 +33,7 @@ export class VimWriteCommandPatcher {
 		}
 
 		this.originalCodeMirrorAdapterSaveCommand =
-			// eslint-disable-next-line @typescript-eslint/unbound-method
+			// eslint-disable-next-line @typescript-eslint/unbound-method -- Requires storing original method reference to successfully restore it on unload
 			codeMirrorAdapterCommands.save;
 
 		codeMirrorAdapterCommands.save = () => {
@@ -52,8 +46,7 @@ export class VimWriteCommandPatcher {
 	/**
 	 * Restores `CodeMirrorAdapter.commands.save` to its original value.
 	 *
-	 * If the original value was `undefined` the patched key is deleted entirely
-	 * to leave the object in the same shape it had before {@link onload}.
+	 * If the original value was `undefined` the patched key is deleted entirely to leave the object in the same shape it had before {@link onload}.
 	 */
 	onunload() {
 		const codeMirrorAdapterCommands = this.getCodeMirrorCommands();
@@ -65,7 +58,6 @@ export class VimWriteCommandPatcher {
 		if (this.originalCodeMirrorAdapterSaveCommand) {
 			codeMirrorAdapterCommands.save = this.originalCodeMirrorAdapterSaveCommand;
 		} else {
-			// the original command was `undefined`, thus, the proper full cleanup would be deleting the key
 			delete codeMirrorAdapterCommands.save;
 		}
 	}

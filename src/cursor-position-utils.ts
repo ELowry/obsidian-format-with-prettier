@@ -1,12 +1,9 @@
 import { EditorPosition } from 'obsidian';
 
 /**
- * Converts a CodeMirror {@link EditorPosition} (line/character) to a flat
- * character offset within the full document text.
+ * Converts a CodeMirror {@link EditorPosition} (line/character) to a flat character offset within the full document text.
  *
- * The offset is calculated as the character index `ch` on the target line
- * plus the cumulative lengths of all preceding lines (each counted with its
- * trailing newline).
+ * The offset is calculated as the character index `ch` on the target line plus the cumulative lengths of all preceding lines (each counted with its trailing newline).
  *
  * @param position - The editor cursor position to convert.
  * @param text - The full document text.
@@ -15,14 +12,12 @@ import { EditorPosition } from 'obsidian';
 export const editorPositionToCursorOffset = (position: EditorPosition, text: string): number => {
 	const lines = text.split('\n');
 
-	// if the cursor is on line i, on character j, the offset
-	// is j plus sum of lengths (incl. the \n at the end) of lines 0..(i - 1)
+	// if the cursor is on line i, on character j, the offset is j plus sum of lengths (incl. the \n at the end) of lines 0..(i - 1)
 	return lines.slice(0, position.line).reduce((acc, line) => acc + line.length + 1, position.ch);
 };
 
 /**
- * Converts a flat character offset within a document text back to a
- * CodeMirror {@link EditorPosition} (line/character).
+ * Converts a flat character offset within a document text back to a sCodeMirror {@link EditorPosition} (line/character).
  *
  * @param cursorOffset - The zero-based character offset into `text`.
  * @param text - The full document text.

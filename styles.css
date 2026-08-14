@@ -1,22 +1,39 @@
 /* styles.css */
 
-.prettier-plugin-block {
-	display: block;
+.setting-item.prettier-plugin-block {
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	gap: 1rem;
 }
 
-.prettier-plugin-warning-text {
-	color: var(--text-warning);
+.prettier-plugin-block .setting-item-info {
+	width: 100%;
+}
+
+.setting-item-control.prettier-plugin-controls-wrap {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: flex-end;
+	gap: 0.8rem;
+	width: 100%;
 }
 
 .prettier-plugin-config-input {
 	width: 100%;
+	min-height: 12rem;
+	max-height: 72dvh;
+	field-sizing: content;
+	overflow-y: auto;
+	resize: vertical;
 	font-family: var(--font-monospace);
 }
 
-.prettier-plugin-settings-element {
-	display: flex;
-	flex-direction: column;
-	align-items: flex-end;
-	gap: 10px;
-	margin-top: 15px;
+.prettier-plugin-config-input.is-invalid {
+	border-color: var(--color-red) !important;
+	box-shadow: 0 0 0 1px var(--color-red);
+}
+
+.prettier-plugin-warning-text {
+	color: var(--text-warning);
 }

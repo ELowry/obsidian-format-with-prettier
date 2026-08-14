@@ -1,18 +1,13 @@
 import { App } from 'obsidian';
 
 /**
- * Intercepts Obsidian's built-in `editor:save-file` command so that a custom
- * callback can be executed every time the user saves a file.
+ * Intercepts Obsidian's built-in `editor:save-file` command so that a custom callback can be executed every time the user saves a file.
  *
- * The original `checkCallback` is preserved and called first to maintain
- * Obsidian's default save behaviour; the custom {@link onFileSave} hook runs
- * immediately after during the execution phase (i.e. when `checking` is
- * `false`).
+ * The original `checkCallback` is preserved and called first to maintain Obsidian's default save behaviour; the custom {@link onFileSave} hook runs immediately after during the execution phase (i.e. when `checking` is `false`).
  */
 export class SaveFileCommandCallback {
 	/**
-	 * The original `checkCallback` of the `editor:save-file` command, stored
-	 * so it can be restored when the plugin unloads.
+	 * The original `checkCallback` of the `editor:save-file` command, stored so it can be restored when the plugin unloads.
 	 */
 	private originalSaveCallback?: (checking: boolean) => boolean | undefined;
 
@@ -23,8 +18,7 @@ export class SaveFileCommandCallback {
 	) {}
 
 	/**
-	 * Looks up the `editor:save-file` command definition from Obsidian's
-	 * internal command registry.
+	 * Looks up the `editor:save-file` command definition from Obsidian's internal command registry.
 	 *
 	 * @returns The command definition object, or `undefined` if not found.
 	 */
@@ -33,8 +27,7 @@ export class SaveFileCommandCallback {
 	}
 
 	/**
-	 * Patches the `editor:save-file` command by replacing its `checkCallback`
-	 * with a wrapper that:
+	 * Patches the `editor:save-file` command by replacing its `checkCallback` with a wrapper that:
 	 *
 	 * 1. Delegates to the original callback for availability checks
 	 *    (`checking === true`).
@@ -53,22 +46,24 @@ export class SaveFileCommandCallback {
 		this.originalSaveCallback = saveCommandDefinition.checkCallback;
 
 		saveCommandDefinition.checkCallback = (checking: boolean) => {
+			const result = this.originalSaveCallback?.apply(saveCommandDefinition, [checking]);
+
 			if (checking) {
-				return this.originalSaveCallback?.apply(saveCommandDefinition, [checking]);
+				return result;
 			}
 
-			this.originalSaveCallback?.apply(saveCommandDefinition, [checking]);
-			this.onFileSave();
-			return true;
+			if (result !== false) {
+				this.onFileSave();
+			}
+
+			return result ?? true;
 		};
 	}
 
 	/**
-	 * Restores the `editor:save-file` command's `checkCallback` to the original
-	 * function captured during {@link onload}, removing the custom hook.
+	 * Restores the `editor:save-file` command's `checkCallback` to the original function captured during {@link onload}, removing the custom hook.
 	 *
-	 * Does nothing if the command is not present in the registry or if no
-	 * original callback was saved.
+	 * Does nothing if the command is not present in the registry or if no original callback was saved.
 	 */
 	onunload() {
 		const saveCommandDefinition = this.getSaveCommandDefinition();
