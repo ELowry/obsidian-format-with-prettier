@@ -55,12 +55,24 @@ export class PrettierConfigLoader {
 	) {}
 
 	/**
+	 * Parses the raw content of a Prettier configuration file based on its file extension.
+	 *
+	 * @param filename - The name of the file being parsed.
+	 * @param content - The raw string content of the file.
+	 * @returns The parsed Prettier options.
+	 */
+	private parseConfigFileContent(filename: string, content: string): Options {
+		if (filename.endsWith('.yml') || filename.endsWith('.yaml')) {
+			return parseYaml(content) as Options;
+		}
+		return JSON.parse(content || '{}') as Options;
+	}
+
+	/**
 	 * Iterates over {@link SUPPORTED_CONFIG_FILES} in priority order and evaluates the first one found in the vault root.
 	 *
-	 * Bypasses the Obsidian `TFile` cache to read dotfiles using `app.vault.adapter`.  
+	 * Bypasses the Obsidian `TFile` cache to read dotfiles using `app.vault.adapter`.
 	 * Uses the file's modification time (`mtime`) to return cached options instantly if the file has not changed since the last read.
-	 *
-	 * YAML files (`.yml` / `.yaml`) are parsed with Obsidian's `parseYaml`; all other files are treated as JSON.
 	 *
 	 * @returns A promise resolving to the parsed {@link Options} object.
 	 */
@@ -76,17 +88,10 @@ export class PrettierConfigLoader {
 
 				try {
 					const fileContents = await this.app.vault.adapter.read(filename);
-					let options: unknown;
-
-					if (filename.endsWith('.yml') || filename.endsWith('.yaml')) {
-						options = parseYaml(fileContents);
-					} else {
-						options = JSON.parse(fileContents || '{}');
-					}
 
 					this.cachedFilePath = filename;
 					this.cachedMtime = stat.mtime;
-					this.fileOptionsCache = options as Options;
+					this.fileOptionsCache = this.parseConfigFileContent(filename, fileContents);
 					this.configFilePath = filename;
 
 					return this.fileOptionsCache;

@@ -1,10 +1,11 @@
-import { Editor, Notice, Modal, Setting, MarkdownView } from 'obsidian';
+import { Editor, Notice, Modal, Setting, MarkdownView, TFile } from 'obsidian';
 import type PrettierPlugin from './main';
 import {
 	cursorOffsetToEditorPosition,
 	editorPositionToCursorOffset,
 } from './cursor-position-utils';
 import { format } from './format';
+import type { Options } from 'prettier';
 
 /**
  * Registers all user-facing commands for the plugin.
@@ -119,27 +120,24 @@ export async function formatFile(plugin: PrettierPlugin, editor: Editor): Promis
 }
 
 /**
- * Formats all markdown files in the vault using the active Prettier configuration.
- *
- * Prompts the user for confirmation using a native Obsidian Modal before modifying files on disk. Periodically yields to the main thread to prevent UI freezing and safely handles open editor tabs.
+ * Prompts the user for confirmation using a native Obsidian Modal before modifying files on disk.
  *
  * @param plugin - The main plugin instance.
+ * @param files - The list of eligible files to be formatted.
+ * @param allFilesCount - The total number of Markdown files in the vault before filtering.
+ * @returns A promise resolving to true if the user confirms, otherwise false.
  */
-async function formatEntireVault(plugin: PrettierPlugin): Promise<void> {
-	const allFiles = plugin.app.vault.getMarkdownFiles();
-	const files = allFiles.filter((file) => !plugin.prettierConfigLoader.isPathIgnored(file.path));
-
-	if (files.length === 0) {
-		new Notice('No eligible Markdown files found to format.');
-		return;
-	}
-
-	const confirm = await new Promise<boolean>((resolve) => {
+function confirmVaultFormat(
+	plugin: PrettierPlugin,
+	files: TFile[],
+	allFilesCount: number,
+): Promise<boolean> {
+	return new Promise<boolean>((resolve) => {
 		const modal = new Modal(plugin.app);
 		modal.titleEl.setText('Format entire vault');
 
 		modal.contentEl.createEl('p', {
-			text: `Are you sure you want to format ${files.length} eligible Markdown files? (Excluded ${allFiles.length - files.length} ignored files). This action cannot be undone.`,
+			text: `Are you sure you want to format ${files.length} eligible Markdown files? (Excluded ${allFilesCount - files.length} ignored files). This action cannot be undone.`,
 		});
 
 		const scrollBox = modal.contentEl.createDiv('prettier-plugin-file-list');
@@ -173,7 +171,83 @@ async function formatEntireVault(plugin: PrettierPlugin): Promise<void> {
 
 		modal.open();
 	});
+}
 
+/**
+ * Formats a single file, applying changes either to the open editor transaction or directly to the file on disk.
+ *
+ * @param plugin - The main plugin instance.
+ * @param file - The Markdown file to format.
+ * @param options - The Prettier configuration options to apply.
+ * @returns A promise resolving to true if the file was modified, otherwise false.
+ */
+async function formatVaultFile(
+	plugin: PrettierPlugin,
+	file: TFile,
+	options: Options,
+): Promise<boolean> {
+	const openEditor = getOpenEditor(plugin, file.path);
+
+	if (openEditor) {
+		const content = openEditor.getValue();
+		const { formatted: formattedContent } = await format({
+			text: content,
+			filepath: file.path,
+			cursorOffset: 0,
+			prettierOptions: options,
+		});
+
+		if (content !== formattedContent && openEditor.getValue() === content) {
+			const lastLine = openEditor.lastLine();
+			const lastLineLength = openEditor.getLine(lastLine).length;
+
+			openEditor.transaction({
+				changes: [
+					{
+						from: { line: 0, ch: 0 },
+						to: { line: lastLine, ch: lastLineLength },
+						text: formattedContent,
+					},
+				],
+			});
+
+			return true;
+		}
+	} else {
+		const content = await plugin.app.vault.read(file);
+		const { formatted: formattedContent } = await format({
+			text: content,
+			filepath: file.path,
+			cursorOffset: 0,
+			prettierOptions: options,
+		});
+
+		if (content !== formattedContent) {
+			await plugin.app.vault.modify(file, formattedContent);
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/**
+ * Formats all markdown files in the vault using the active Prettier configuration.
+ *
+ * Periodically yields to the main thread to prevent UI freezing and safely handles open editor tabs.
+ *
+ * @param plugin - The main plugin instance.
+ */
+async function formatEntireVault(plugin: PrettierPlugin): Promise<void> {
+	const allFiles = plugin.app.vault.getMarkdownFiles();
+	const files = allFiles.filter((file) => !plugin.prettierConfigLoader.isPathIgnored(file.path));
+
+	if (files.length === 0) {
+		new Notice('No eligible Markdown files found to format.');
+		return;
+	}
+
+	const confirm = await confirmVaultFormat(plugin, files, allFiles.length);
 	if (!confirm) return;
 
 	const options = await plugin.prettierConfigLoader.getOptions();
@@ -194,46 +268,9 @@ async function formatEntireVault(plugin: PrettierPlugin): Promise<void> {
 		}
 
 		try {
-			const openEditor = getOpenEditor(plugin, file.path);
-
-			if (openEditor) {
-				const content = openEditor.getValue();
-				const { formatted: formattedContent } = await format({
-					text: content,
-					filepath: file.path,
-					cursorOffset: 0,
-					prettierOptions: options,
-				});
-
-				if (content !== formattedContent && openEditor.getValue() === content) {
-					const lastLine = openEditor.lastLine();
-					const lastLineLength = openEditor.getLine(lastLine).length;
-
-					openEditor.transaction({
-						changes: [
-							{
-								from: { line: 0, ch: 0 },
-								to: { line: lastLine, ch: lastLineLength },
-								text: formattedContent,
-							},
-						],
-					});
-
-					formattedCount++;
-				}
-			} else {
-				const content = await plugin.app.vault.read(file);
-				const { formatted: formattedContent } = await format({
-					text: content,
-					filepath: file.path,
-					cursorOffset: 0,
-					prettierOptions: options,
-				});
-
-				if (content !== formattedContent) {
-					await plugin.app.vault.modify(file, formattedContent);
-					formattedCount++;
-				}
+			const wasFormatted = await formatVaultFile(plugin, file, options);
+			if (wasFormatted) {
+				formattedCount++;
 			}
 		} catch (err) {
 			console.error(`Failed to format ${file.name}:`, err);

@@ -138,7 +138,7 @@ export class PrettierSettingTab extends PluginSettingTab {
 												await this.plugin.saveSettings();
 
 												new Notice(
-													`Imported configuration from ${this.plugin.prettierConfigLoader.configFilePath}`,
+													`Imported configuration from ${this.plugin.prettierConfigLoader.configFilePath ?? 'unknown'}`,
 												);
 											} else {
 												new Notice(
@@ -310,7 +310,7 @@ export class PrettierSettingTab extends PluginSettingTab {
 								const patternCount =
 									this.plugin.prettierConfigLoader.loadedIgnorePatternsCount;
 
-								if (filePaths && filePaths.length > 0) {
+								if (filePaths.length > 0) {
 									desc.append(
 										`Using ${patternCount} active ignore pattern(s) from the following file(s):`,
 									);
